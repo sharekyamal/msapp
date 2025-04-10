@@ -3,111 +3,129 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YoYar VIP</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <title>Fenix Frontend</title>
+  <link rel="stylesheet" href="all.min.css">
   <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #1a1a1a;
-      color: white;
+      color: #fff;
       margin: 0;
-      padding: 10px;
+      padding: 20px;
     }
-    .header {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 20px;
+    h1, h2 {
+      text-align: center;
     }
-    .section-title {
-      font-size: 18px;
-      margin: 10px 0;
-    }
-    .series-grid, .movies-grid {
+    .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
     }
     .series-item, .movie-item {
       cursor: pointer;
+      text-align: center;
     }
     .series-item img, .movie-item img {
       width: 100%;
-      border-radius: 5px;
+      height: auto;
+      border-radius: 8px;
     }
     .series-item p, .movie-item p {
-      font-size: 12px;
       margin: 5px 0 0;
-      text-align: center;
-    }
-    .view-all {
-      text-align: right;
-      color: #00aaff;
-      cursor: pointer;
-      margin-top: 10px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <div class="header">YoYar VIP</div>
-
-  <div class="section-title">All Series</div>
-  <div class="series-grid" id="series-grid">
-    <!-- Series items will be added dynamically -->
-  </div>
-  <div class="view-all">VIEW ALL</div>
-
-  <div class="section-title">Movies</div>
-  <div class="movies-grid" id="movies-grid">
-    <!-- Movie items will be added dynamically -->
-  </div>
-  <div class="view-all">VIEW ALL</div>
+  <h1>Fenix Frontend</h1>
+  <h2>All Series</h2>
+  <div id="series-grid" class="grid"></div>
+  <h2>Movies</h2>
+  <div id="movies-grid" class="grid"></div>
 
   <script>
-    // Sample series data
-    const seriesData = [
-      { id: 1, title: "စီးရီးတစ်ခု", image: "https://via.placeholder.com/100", type: "series" },
-      { id: 2, title: "စီးရီးနှစ်ခု", image: "https://via.placeholder.com/100", type: "series" },
-    ];
+    const API_URL = 'https://fenix-backend-iae6.onrender.com';
+    let allSeries = [];
+    let allMovies = [];
 
-    // Sample movies data
-    const moviesData = [
-      { id: 3, title: "ဇာတ်ကားတစ်ကား", image: "https://via.placeholder.com/100", type: "movie" },
-      { id: 4, title: "ဇာတ်ကားနှစ်ကား", image: "https://via.placeholder.com/100", type: "movie" },
-    ];
+    async function fetchSeries() {
+      try {
+        const response = await fetch(`${API_URL}/api/series`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch series: ' + response.status);
+        }
+        const seriesData = await response.json();
+        console.log('Series Data:', seriesData); // Debug လုပ်ဖို့
+        // ဒေတာက array ဟုတ်မဟုတ် စစ်ပါ
+        if (!Array.isArray(seriesData)) {
+          throw new Error('Series data is not an array');
+        }
+        allSeries = seriesData;
+        const seriesGrid = document.getElementById("series-grid");
+        if (!seriesGrid) {
+          throw new Error('Series grid element not found');
+        }
+        seriesGrid.innerHTML = ''; // Clear existing content
+        seriesData.forEach(series => {
+          const seriesItem = document.createElement("div");
+          seriesItem.className = "series-item";
+          seriesItem.innerHTML = `
+            <img src="${series.image}" alt="${series.title}">
+            <p>${series.title}</p>
+          `;
+          seriesItem.onclick = () => {
+            window.location.href = `episodes.html?contentId=${series.id}&type=${series.type}`;
+          };
+          seriesGrid.appendChild(seriesItem);
+        });
+      } catch (error) {
+        console.error('Error fetching series:', error);
+        alert('Error fetching series: ' + error.message);
+      }
+    }
 
-    const seriesGrid = document.getElementById("series-grid");
-    const moviesGrid = document.getElementById("movies-grid");
+    async function fetchMovies() {
+      try {
+        const response = await fetch(`${API_URL}/api/movies`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch movies: ' + response.status);
+        }
+        const moviesData = await response.json();
+        console.log('Movies Data:', moviesData); // Debug လုပ်ဖို့
+        // ဒေတာက array ဟုတ်မဟုတ် စစ်ပါ
+        if (!Array.isArray(moviesData)) {
+          throw new Error('Movies data is not an array');
+        }
+        allMovies = moviesData;
+        const moviesGrid = document.getElementById("movies-grid");
+        if (!moviesGrid) {
+          throw new Error('Movies grid element not found');
+        }
+        moviesGrid.innerHTML = ''; // Clear existing content
+        moviesData.forEach(movie => {
+          const movieItem = document.createElement("div");
+          movieItem.className = "movie-item";
+          movieItem.innerHTML = `
+            <img src="${movie.image}" alt="${movie.title}">
+            <p>${movie.title}</p>
+          `;
+          movieItem.onclick = () => {
+            window.location.href = `episodes.html?contentId=${movie.id}&type=${movie.type}`;
+          };
+          moviesGrid.appendChild(movieItem);
+        });
+      } catch (error) {
+        console.error('Error fetching movies:', error);
+        alert('Error fetching movies: ' + error.message);
+      }
+    }
 
-    // Dynamically add series to the grid
-    seriesData.forEach(series => {
-      const seriesItem = document.createElement("div");
-      seriesItem.className = "series-item";
-      seriesItem.innerHTML = `
-        <img src="${series.image}" alt="${series.title}">
-        <p>${series.title}</p>
-      `;
-      seriesItem.onclick = () => {
-        window.location.href = `episodes.html?contentId=${series.id}&type=${series.type}`;
-      };
-      seriesGrid.appendChild(seriesItem);
-    });
-
-    // Dynamically add movies to the grid
-    moviesData.forEach(movie => {
-      const movieItem = document.createElement("div");
-      movieItem.className = "movie-item";
-      movieItem.innerHTML = `
-        <img src="${movie.image}" alt="${movie.title}">
-        <p>${movie.title}</p>
-      `;
-      movieItem.onclick = () => {
-        window.location.href = `episodes.html?contentId=${movie.id}&type=${movie.type}`;
-      };
-      moviesGrid.appendChild(movieItem);
-    });
-
-    // Telegram WebApp initialization
-    window.Telegram.WebApp.ready();
+    // Page ဖွင့်တာနဲ့ API ကို ခေါ်ပါ
+    window.onload = () => {
+      fetchSeries();
+      fetchMovies();
+    };
   </script>
 </body>
 </html>
